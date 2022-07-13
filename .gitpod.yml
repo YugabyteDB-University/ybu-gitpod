@@ -4,17 +4,46 @@ image:
 tasks:
   - name: run-base
     before: |
-      yugabyted start --base_dir=$STORE/ybd1 --listen=$HOST_LB
+      yugabyted start \
+      --base_dir=$STORE/ybd1 \
+      --listen=$HOST_LB1 \
+      --tserver_webserver_port=8201 \
+      --tserver_flags=ysql_num_shards_per_tserver=1 \
+      --tserver_flags=ysql_beta_features=true \
+      --tserver_flags=webserver_port=8201 \
+      --master_flags=ysql_num_shards_per_tserver=1 \
+      --master_flags=replication_factor=3 \
+      --master_webserver_port=7001
       gp sync-done base
   - name: run-lb2
     before: |
       gp sync-await base
-      yugabyted start --base_dir=$STORE/ybd2 --listen=$HOST_LB2 --join=$HOST_LB
+      yugabyted start \
+      --base_dir=$STORE/ybd2 \
+      --listen=$HOST_LB2 \
+      --join=$HOST_LB1 \
+      --tserver_webserver_port=8202 \
+      --tserver_flags=ysql_num_shards_per_tserver=1 \
+      --tserver_flags=ysql_beta_features=true \
+      --tserver_flags=webserver_port=8202 \
+      --master_flags=ysql_num_shards_per_tserver=1 \
+      --master_flags=replication_factor=3 \
+      --master_webserver_port=7002
       gp sync-done lb2
   - name: run-lb3
     before: |
       gp sync-await lb2
-      yugabyted start --base_dir=$STORE/ybd3 --listen=$HOST_LB3 --join=$HOST_LB
+      yugabyted start \
+      --base_dir=$STORE/ybd3 \
+      --listen=$HOST_LB3 \
+      --join=$HOST_LB1 \
+      --tserver_webserver_port=8203 \
+      --tserver_flags=ysql_num_shards_per_tserver=1 \
+      --tserver_flags=ysql_beta_features=true \
+      --tserver_flags=webserver_port=8203 \
+      --master_flags=ysql_num_shards_per_tserver=1 \
+      --master_flags=replication_factor=3 \
+      --master_webserver_port=7003
   - name: shell
     command: |
       gp await-port 5433
@@ -22,12 +51,36 @@ tasks:
 # exposed ports
 ports:
   - port: 7000
+    onOpen: ignore
+  - port: 7001
     onOpen: notify
-  - port: 9000
+  - port: 7002
+    onOpen: notify
+  - port: 7003
+    onOpen: notify
+  - port: 8200
+    onOpen: ignore
+  - port: 8201
+    onOpen: notify
+  - port: 8202
+    onOpen: notify
+  - port: 8203
     onOpen: notify
   - port: 37843
     onOpen: ignore
   - port: 7100
+    onOpen: ignore
+  - port: 9000
+    onOpen: ignore
+  - port: 9001
+    onOpen: ignore
+  - port: 9002
+    onOpen: ignore
+  - port: 9003
+    onOpen: ignore
+  - port: 9004
+    onOpen: ignore
+  - port: 9005
     onOpen: ignore
   - port: 9100
     onOpen: ignore
